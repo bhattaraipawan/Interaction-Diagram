@@ -1,2 +1,2 @@
 # Interaction-Diagram
-Interaction Diagram for Beam
+Interaction Diagram for Column
