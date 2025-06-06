@@ -100,7 +100,7 @@ class InteractionDiagramApp(QWidget):
         ax.set_xlim(new_left, new_right)
         ax.set_ylim(new_bottom, new_top)
         self.canvas.draw()
-    
+
     def run_calculation(self):
         try:
             # Input parsing
@@ -145,7 +145,7 @@ class InteractionDiagramApp(QWidget):
             ax1 = fig.add_subplot(121)
             ax2 = fig.add_subplot(122)
 
-            # Define correct labels in the order of key points
+            # Define correct labels for key points
             ordered_labels = [
                 "Max Compression",
                 "Bar Stress = 0",
@@ -156,25 +156,27 @@ class InteractionDiagramApp(QWidget):
                 "Max Tension"
             ]
 
-            # Plot nominal interaction diagram (only key points)
+            # Plot nominal interaction diagram (all points with dots, label only key points)
             ax1.plot(Mn_full, Pn_full, 'bo-', label="Nominal Interaction Diagram")
-            for i, (x, y) in enumerate(zip(Mn_full, Pn_full)):
-                ax1.text(x, y, f"{ordered_labels[i]}\n(Pn={y:.1f}, Mn={x:.1f})",
+            for idx, label in zip(key_indices, ordered_labels):
+                x, y = Mn_full[idx], Pn_full[idx]
+                ax1.text(x, y, f"{label}\n(Pn={y:.1f}, Mn={x:.1f})",
                          fontsize=8, ha='left' if x < 0 else 'right', va='bottom' if y < 0 else 'top')
             ax1.set_xlabel("Moment, Mn (kip-ft)")
             ax1.set_ylabel("Axial Force, Pn (kip)")
-            ax1.set_title("Nominal Interaction Diagram (7 Key Points)")
+            ax1.set_title("Nominal Interaction Diagram")
             ax1.grid(True, linestyle='--', alpha=0.6)
             ax1.legend()
 
-            # Plot factored interaction diagram (only key points)
+            # Plot factored interaction diagram (all points with dots, label only key points)
             ax2.plot(Mrd_full, Nrd_full, 'ro-', label="Factored Interaction Diagram")
-            for i, (x, y) in enumerate(zip(Mrd_full, Nrd_full)):
-                ax2.text(x, y, f"{ordered_labels[i]}\n(φPn={y:.1f}, φMn={x:.1f})",
+            for idx, label in zip(key_indices, ordered_labels):
+                x, y = Mrd_full[idx], Nrd_full[idx]
+                ax2.text(x, y, f"{label}\n(φPn={y:.1f}, φMn={x:.1f})",
                          fontsize=8, ha='left' if x < 0 else 'right', va='bottom' if y < 0 else 'top')
             ax2.set_xlabel("Moment, φMn (kip-ft)")
             ax2.set_ylabel("Axial Force, φPn (kip)")
-            ax2.set_title("Factored Interaction Diagram (7 Key Points)")
+            ax2.set_title("Factored Interaction Diagram")
             ax2.grid(True, linestyle='--', alpha=0.6)
             ax2.legend()
 
@@ -182,10 +184,11 @@ class InteractionDiagramApp(QWidget):
             fig.tight_layout()
             self.canvas.draw()
 
-            # Update results tab
+            # Update results tab (only key points)
             result_text = "Key Points (Pn, Mn, φPn, φMn):\n"
-            for i, (pn, mn, nrd, mrd) in enumerate(zip(Pn_full, Mn_full, Nrd_full, Mrd_full)):
-                result_text += (f"{ordered_labels[i]}: "
+            for idx, label in zip(key_indices, ordered_labels):
+                pn, mn, nrd, mrd = Pn_full[idx], Mn_full[idx], Nrd_full[idx], Mrd_full[idx]
+                result_text += (f"{label}: "
                               f"Pn={pn:.1f} kips, Mn={mn:.1f} kip-ft, "
                               f"φPn={nrd:.1f} kips, φMn={mrd:.1f} kip-ft\n")
             self.result_label.setText(result_text)
