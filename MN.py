@@ -67,54 +67,103 @@ def Interaction_Diagram(w, h, Ctt, Cbt, Tie_d, Top_bar_size, Bottom_bar_size, Nt
         phi = get_phi(eps_s1)
 
         return Pn, Mn, phi * Pn, phi * Mn, phi, eps_s1
-    # Key ACI Points
+
+    # Initialize lists for points
     Mrd, Nrd, Mn_list, Pn_list = [], [], [], []
+    c_values = []
+    key_indices = []
 
     # Point 1: Max Compression
     Ast_total = Ast + Asb
     Po = 0.85 * fc * (Ag - Ast_total) + fy * Ast_total
-    Pn = 0.8 * Po
+    Pn = 0.8 * Po  # ACI 318-19 factor for tied columns
     phi = 0.65
     Nrd.append(phi * Pn)
     Mrd.append(0.0)
     Pn_list.append(Pn)
     Mn_list.append(0.0)
+    c_values.append(h)
+    key_indices.append(len(Mrd) - 1)
 
-    # Point 2: Bar Stress = 0(tension rebar:es=0)
+    # Adding 20 points between Max Compression and Bar Stress = 0
     c2 = y_bottom if Nb > 0 else h / 2
+    c_intermediate = np.linspace(h, c2, 22)[1:-1]  # 20 points between c1 and c2
+    for c in c_intermediate:
+        Pn, Mn, PhiPn, PhiMn, _, _ = compute_forces(c, adjust_top_steel=True)
+        Nrd.append(PhiPn)
+        Mrd.append(PhiMn)
+        Pn_list.append(Pn)
+        Mn_list.append(Mn)
+
+    # Point 2: Bar Stress = 0 (tension rebar: es=0)
     Pn, Mn, PhiPn, PhiMn, _, _ = compute_forces(c2, adjust_top_steel=True)
     Nrd.append(PhiPn)
     Mrd.append(PhiMn)
     Pn_list.append(Pn)
     Mn_list.append(Mn)
+    c_values.append(c2)
+    key_indices.append(len(Mrd) - 1)
 
-    # Point 3: fs = 0.5fy
+    # Adding 20 points between Bar Stress = 0 and fs = 0.5fy
     eps_s1 = 0.5 * eps_y
     c3 = (eps_cu * y_bottom) / (eps_cu + eps_s1) if Nb > 0 else h / 2
+    c_intermediate = np.linspace(c2, c3, 22)[1:-1]
+    for c in c_intermediate:
+        Pn, Mn, PhiPn, PhiMn, _, _ = compute_forces(c, adjust_top_steel=True)
+        Nrd.append(PhiPn)
+        Mrd.append(PhiMn)
+        Pn_list.append(Pn)
+        Mn_list.append(Mn)
+
+    # Point 3: fs = 0.5fy
     Pn, Mn, PhiPn, PhiMn, _, _ = compute_forces(c3, adjust_top_steel=True)
     Nrd.append(PhiPn)
     Mrd.append(PhiMn)
     Pn_list.append(Pn)
     Mn_list.append(Mn)
+    c_values.append(c3)
+    key_indices.append(len(Mrd) - 1)
 
-    # Point 4: Balanced Failure (fs = fy)
+    # Adding 20 points between fs = 0.5fy and Balanced Failure
     eps_s1 = eps_y
     c4 = (eps_cu * y_bottom) / (eps_cu + eps_s1) if Nb > 0 else h / 2
+    c_intermediate = np.linspace(c3, c4, 22)[1:-1]
+    for c in c_intermediate:
+        Pn, Mn, PhiPn, PhiMn, _, _ = compute_forces(c, adjust_top_steel=True)
+        Nrd.append(PhiPn)
+        Mrd.append(PhiMn)
+        Pn_list.append(Pn)
+        Mn_list.append(Mn)
+
+    # Point 4: Balanced Failure (fs = fy)
     Pn, Mn, PhiPn, PhiMn, _, _ = compute_forces(c4, adjust_top_steel=True)
     Nrd.append(PhiPn)
     Mrd.append(PhiMn)
     Pn_list.append(Pn)
     Mn_list.append(Mn)
+    c_values.append(c4)
+    key_indices.append(len(Mrd) - 1)
+
+    # Adding 20 points between Balanced Failure and Tension-Controlled
+    c5 = (eps_cu * y_bottom) / (eps_cu + eps_t_controlled) if Nb > 0 else h / 2
+    c_intermediate = np.linspace(c4, c5, 22)[1:-1]
+    for c in c_intermediate:
+        Pn, Mn, PhiPn, PhiMn, _, _ = compute_forces(c, adjust_top_steel=True)
+        Nrd.append(PhiPn)
+        Mrd.append(PhiMn)
+        Pn_list.append(Pn)
+        Mn_list.append(Mn)
 
     # Point 5: Tension controlled (eps = 0.00507)
-    c5 = (eps_cu * y_bottom) / (eps_cu + eps_t_controlled) if Nb > 0 else h / 2
     Pn, Mn, PhiPn, PhiMn, _, _ = compute_forces(c5, adjust_top_steel=True)
     Nrd.append(PhiPn)
     Mrd.append(PhiMn)
     Pn_list.append(Pn)
     Mn_list.append(Mn)
+    c_values.append(c5)
+    key_indices.append(len(Mrd) - 1)
 
-    # Point 6: Pure bending (Pn = 0)
+    # Adding 20 points between Tension-Controlled and Pure Bending
     c_low, c_high = 0.1, h
     for _ in range(1000):
         c_mid = (c_low + c_high) / 2
@@ -125,11 +174,33 @@ def Interaction_Diagram(w, h, Ctt, Cbt, Tie_d, Top_bar_size, Bottom_bar_size, Nt
             c_high = c_mid
         else:
             c_low = c_mid
-    Pn, Mn, PhiPn, PhiMn, _, _ = compute_forces(c_mid, adjust_top_steel=True)
+    c6 = c_mid
+    c_intermediate = np.linspace(c5, c6, 22)[1:-1]
+    for c in c_intermediate:
+        Pn, Mn, PhiPn, PhiMn, _, _ = compute_forces(c, adjust_top_steel=True)
+        Nrd.append(PhiPn)
+        Mrd.append(PhiMn)
+        Pn_list.append(Pn)
+        Mn_list.append(Mn)
+
+    # Point 6: Pure bending (Pn = 0)
+    Pn, Mn, PhiPn, PhiMn, _, _ = compute_forces(c6, adjust_top_steel=True)
     Nrd.append(PhiPn)
     Mrd.append(PhiMn)
     Pn_list.append(Pn)
     Mn_list.append(Mn)
+    c_values.append(c6)
+    key_indices.append(len(Mrd) - 1)
+
+    # Adding 20 points between Pure Bending and Max Tension
+    c7 = 0.0
+    c_intermediate = np.linspace(c6, c7, 22)[1:-1]
+    for c in c_intermediate:
+        Pn, Mn, PhiPn, PhiMn, _, _ = compute_forces(c, adjust_top_steel=True)
+        Nrd.append(PhiPn)
+        Mrd.append(PhiMn)
+        Pn_list.append(Pn)
+        Mn_list.append(Mn)
 
     # Point 7: Max tension
     Pn = -fy * (Ast + Asb)
@@ -139,12 +210,13 @@ def Interaction_Diagram(w, h, Ctt, Cbt, Tie_d, Top_bar_size, Bottom_bar_size, Nt
     Mrd.append(0.0)
     Pn_list.append(Pn)
     Mn_list.append(0.0)
+    c_values.append(c7)
+    key_indices.append(len(Mrd) - 1)
 
-    key_points = list(range(7))
     return (
         np.array(Mrd), 
         np.array(Nrd), 
         np.array(Mn_list), 
         np.array(Pn_list), 
-        key_points
+        key_indices
     )
