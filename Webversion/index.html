@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Column Interaction Diagram · Pawan Bhattarai</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar">
+    <h1>Column Interaction Diagram</h1>
+    <a href="https://bhattaraipawan.github.io/">&larr; Back to portfolio</a>
+  </div>
+
+  <main class="app-stage">
+    <div class="tool">
+      <p class="lead">P&ndash;M capacity envelope for a tied reinforced-concrete column (ACI&nbsp;318 strain compatibility). Adjust the section and reinforcement, then drag the orange &times; to test a factored demand (P<sub>u</sub>, M<sub>u</sub>) against the design capacity.</p>
+
+      <div class="id-main">
+        <div class="sec-box">
+          <div class="sec-label">Cross-section</div>
+          <canvas id="sec" width="360" height="360"></canvas>
+        </div>
+        <div class="chart-box">
+          <canvas id="chart" width="640" height="500"></canvas>
+          <div class="legend"><b class="n">&mdash;</b> nominal P<sub>n</sub>&ndash;M<sub>n</sub> &nbsp; <b class="d">&mdash;</b> design &phi;P<sub>n</sub>&ndash;&phi;M<sub>n</sub> &nbsp; <b class="x">&times;</b> demand</div>
+        </div>
+      </div>
+
+      <div class="controls" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem 1.6rem;margin-top:1.2rem">
+        <div class="ctrl"><label for="b">Width b</label><div class="num"><input id="b" type="number" min="1" step="1" value="16"><span class="unit">in</span></div></div>
+        <div class="ctrl"><label for="h">Depth h</label><div class="num"><input id="h" type="number" min="1" step="1" value="16"><span class="unit">in</span></div></div>
+        <div class="ctrl"><label for="fc">f&prime;c</label><div class="num"><input id="fc" type="number" min="1" step="0.5" value="4"><span class="unit">ksi</span></div></div>
+        <div class="ctrl"><label for="fy">fy</label><div class="num"><input id="fy" type="number" min="1" step="5" value="60"><span class="unit">ksi</span></div></div>
+        <div class="ctrl"><label for="bar">Bar size</label><div class="num"><span class="unit pre">#</span><input id="bar" type="number" min="4" max="11" step="1" value="8"></div></div>
+        <div class="ctrl"><label for="n">Bars per face</label><div class="num"><input id="n" type="number" min="2" max="5" step="1" value="3"></div></div>
+      </div>
+
+      <div class="readout">
+        <div class="stat"><div class="k">&rho; steel</div><div class="v" id="rho">&mdash;</div></div>
+        <div class="stat"><div class="k">&phi;Pn,max</div><div class="v" id="pmax">&mdash;</div></div>
+        <div class="stat"><div class="k">demand Pu</div><div class="v dem" id="du">&mdash;</div></div>
+        <div class="stat"><div class="k">demand Mu</div><div class="v dem" id="dm">&mdash;</div></div>
+      </div>
+      <div class="verdict" id="verdict"><span class="dot"></span><span>&mdash;</span></div>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
